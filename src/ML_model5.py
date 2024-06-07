@@ -15,14 +15,14 @@ import warnings
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Define the folder path containing the temperature data files
-folder_path = '../data/tempcurves'
+folder_path = '../../data/tempcurves'
 
 # Generate a list of files starting with 'PKK' in the specified folder
 uploaded_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith('.xlsx')]
 logging.info(f'Found {len(uploaded_files)} files')
 
 # Load recurrence data from the specified path
-recurrence_file_path = '../data/recurrence/recurrence.xlsx'
+recurrence_file_path = '../../data/recurrence.xlsx'
 recurrence_data = pd.read_excel(recurrence_file_path)
 
 # Verify the integrity of the recurrence_data DataFrame
