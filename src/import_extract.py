@@ -1,6 +1,7 @@
 import pandas as pd
 import os
-import json
+import json as json
+import pickle as pickle
 import import_extract_helpers as import_functions
 def main(): 
     
@@ -21,7 +22,7 @@ def main():
     print("Recurrence DataFrame head:")
     print(recurrence_data.head())
     print("Number of unique patients in recurrence data:", recurrence_data['ID'].nunique())
-    print("Total number of recurrences:", recurrence_data['Recurrence (1 = yes; 0 = no)'].sum())
+    print("Total number of recurrences:", recurrence_data['Recurrence'].sum())
     
     # Initialize a DataFrame to store extracted features for each patient
     extracted_features_list = []
@@ -43,7 +44,7 @@ def main():
             temp_curve_df = pd.read_excel(xls, sheet_name=sheet_name, usecols=[0, 1])  # Only load the first two columns
             temp_curve_df.columns = ['Time', 'Temperature']  # Ensure columns are named correctly
             temp_curve_df = temp_curve_df[temp_curve_df['Time'] <= 180]  # Limit to first 180 seconds
-            if temp_curve_df['Time'].iloc[-1] < 30:  # Filter out temperature curves fewer than 30 seconds
+            if temp_curve_df['Time'].iloc[-1] < 100:  # Filter out temperature curves fewer than 100 seconds
                 continue
             
             patient_vein_count += 1 # add a counter to create unique combination of patient and vein 
@@ -95,11 +96,14 @@ def main():
     recurrence_data_with_features['Normalized_Reconduction_Site'] = recurrence_data_with_features['Reconduction_Site'] / 4.0
     
     # save extracted features to files 
-    with open("../../data/extracted/raw_data_list.json", 'w') as f: 
-        json.dump(raw_data_list, f, indent = 2, default = str)
+    with open("../../data/extracted/raw_data_list.p", 'wb') as f: 
+        pickle.dump(raw_data_list, f, protocol = pickle.HIGHEST_PROTOCOL)
 
-    with open("../../data/extracted/extracted_features_list.json", 'w') as f: 
-        json.dump(extracted_features_list, f, indent = 2)
+    with open("../../data/extracted/extracted_features_list.p", 'wb') as f: 
+        pickle.dump(extracted_features_list, f, protocol = pickle.HIGHEST_PROTOCOL)
+     
+    with open("../../data/extracted/recurrence_data_with_features.p", 'wb') as f: 
+        pickle.dump(recurrence_data_with_features, f, protocol = pickle.HIGHEST_PROTOCOL )
         
 if __name__ == "__main__":
     main()
