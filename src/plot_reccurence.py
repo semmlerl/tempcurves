@@ -18,4 +18,4 @@ with open("../../data/extracted/raw_data_list.p", 'rb') as f: data_raw = pickle.
 ggplot(data) + aes( x = "Reconduction_Site", y = "LA_FLAECHE") + geom_point() + geom_smooth(method= "lm")
 
  
-ggplot(data_re_fe, aes(x  = "Reconduction_Site", y = "cooling_energy" ))    + geom_point()+ geom_bar(stat= "summary", alpha = 0.3)
+ggplot(data_re_fe, aes(x  = "Reconduction_Site", y = "min_temp" ))    + geom_point()+ geom_bar(stat= "summary", alpha = 0.3)
