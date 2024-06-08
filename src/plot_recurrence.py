@@ -41,7 +41,7 @@ for patient in data_re_fe['ID'].unique():
         plots.append(p)        
     
     ## adding annotation
-    string = ("reccurence: " + str(recurrence['Recurrence'].values[0]) + ", Reconduction sites: " + str(recurrence['Reconduction_Site'].values[0]))
+    string = ("recurrence: " + str(recurrence['Recurrence'].values[0]) + ", Reconduction sites: " + str(recurrence['Reconduction_Site'].values[0]))
     plots[0] += ggtitle(string)    
         
     # convert all plots to pw objects
