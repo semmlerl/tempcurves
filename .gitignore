@@ -1,4 +1,4 @@
 data
-virtualenv
+.venv
 .spyproject
 src/_pycache_

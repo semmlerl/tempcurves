@@ -3,17 +3,36 @@ from scipy.integrate import simpson
 from scipy.optimize import curve_fit, OptimizeWarning
 import warnings
 
+# check wheter tempcurves fulfills all inclusion criteria
+def is_valid_tempcurve(temp_curve_df): 
+    
+    if temp_curve_df['Time'].iloc[-1] < 100:    # filter by length of temperaturecurve
+        return False   
+    
+    if min(temp_curve_df['Temperature'])>0:     # filter curves that never actually cool down
+        return False
+    
+    return True 
 
-# Function to fit an exponential function
-def exp_func(x, a, b, c):
-    return a * np.exp(b * x) + c
-
-# Likelihood calculation function
-def calculate_likelihood(temp_curve_df):
-    # This is a placeholder for the likelihood calculation
-    # Replace with the actual likelihood calculation logic
-    return np.random.random()
-
+# cut temp curve at dipping point
+def find_dipping_point(temp_curve_df):    
+    point_20 =temp_curve_df[temp_curve_df.Temperature <= 30].index[0]
+    
+    temp_curve_df.plot()
+    
+    dipping_point = 0
+    
+    for i in range(point_20,0, -1): 
+        if temp_curve_df['Temperature'].iloc[i]>= temp_curve_df['Temperature'].iloc[i - 1]:
+            dipping_point = i
+            break
+    
+    output = temp_curve_df.iloc[dipping_point:]  
+    output['Time']= range(1,len(output['Time'])+1)
+    output.plot()
+     
+    return output
+    
 # Feature extraction function for a single temperature curve
 def extract_features(temp_curve_df):
     features = {}
@@ -22,7 +41,20 @@ def extract_features(temp_curve_df):
     features['max_temp'] = temp_curve_df['Temperature'].max()
     features['std_temp'] = temp_curve_df['Temperature'].std()
     features['length'] = temp_curve_df['Temperature'].shape[0]
-
+    
+    # kinetics of decline
+    try: 
+        features['t30']=temp_curve_df[temp_curve_df.Temperature <= 30].iloc[0,0]
+        features['t20']=temp_curve_df[temp_curve_df.Temperature <= 20].iloc[0,0]
+        features['t10']=temp_curve_df[temp_curve_df.Temperature <= 10].iloc[0,0]
+        features['t0']=temp_curve_df[temp_curve_df.Temperature <= 0].iloc[0,0]
+        features['t_10']=temp_curve_df[temp_curve_df.Temperature <= -10].iloc[0,0]
+        features['t_20']=temp_curve_df[temp_curve_df.Temperature <= -20].iloc[0,0]
+        features['t_30']=temp_curve_df[temp_curve_df.Temperature <= -30].iloc[0,0]
+        
+    except: 
+        pass
+    
     # Minimum temperature between 50-150 seconds
     temp_50_150 = temp_curve_df[(temp_curve_df['Time'] >= 50) & (temp_curve_df['Time'] <= 150)]
     features['min_temp_50_150'] = temp_50_150['Temperature'].min()
@@ -52,21 +84,9 @@ def extract_features(temp_curve_df):
     cooling_energy = simpson(y=temp_curve_df['Temperature'], x=temp_curve_df['Time'])
     features['cooling_energy'] = cooling_energy
 
-    # Mean quadratic error between temperature curve and exponential function
-    if len(temp_curve_df) > 3:  # Ensure there are enough points to fit an exponential function
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", OptimizeWarning)
-                popt, _ = curve_fit(exp_func, temp_curve_df['Time'], temp_curve_df['Temperature'], maxfev=10000)
-            fitted_curve = exp_func(temp_curve_df['Time'], *popt)
-            mse = np.mean((temp_curve_df['Temperature'] - fitted_curve) ** 2)
-        except (RuntimeError, OptimizeWarning, TypeError):
-            mse = np.nan  # Handle cases where curve fitting fails
-    else:
-        mse = np.nan  # Handle cases with insufficient data points
-    features['mean_quad_error_exp'] = mse
 
-    # Add likelihood as a feature
-    features['likelihood'] = calculate_likelihood(temp_curve_df)
 
     return features
+    
+    
+
