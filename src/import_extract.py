@@ -3,6 +3,7 @@ import os
 import json as json
 import pickle as pickle
 import import_extract_helpers as import_functions
+import matplotlib.pyplot as plt
 
 def main(): 
     
@@ -48,8 +49,14 @@ def main():
                         
             if import_functions.is_valid_tempcurve(temp_curve_df):    
                 
+                ##cutting the temperature curve at the dipping point to exclude the nonspecific "waiting time at the beginning"
                 temp_curve_df = import_functions.find_dipping_point(temp_curve_df)
                 
+                ##plotting cutted files
+                plt.plot(temp_curve_df['Temperature'])
+                plt.savefig("../../../data/dipping/" + patient_id + str(patient_vein_count) + ".png")
+                plt.close()
+                             
                 patient_vein_count += 1 # add a counter to create unique combination of patient and vein 
                 
                 ## extract features and add them to feature_list

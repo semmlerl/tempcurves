@@ -1,4 +1,4 @@
-from plotnine import ggplot, aes, geom_point, geom_jitter, geom_line, geom_smooth, geom_bar, ggtitle, scale_x_discrete
+from plotnine import ggplot, aes, geom_point, geom_jitter, geom_line, geom_smooth, geom_bar, ggtitle, scale_x_discrete, geom_violin
 import pandas as pd
 import pickle
 import patchworklib as pw
@@ -17,7 +17,7 @@ with open("../../../data/extracted/raw_data_list.p", 'rb') as f: data_raw = pick
 
 # plotting
 
-ggplot(data_re_fe, aes(x  = "Recurrence", y = "t0"))    + geom_jitter(alpha=0.3)+ geom_bar(stat= "summary", alpha = 0.3)
+ggplot(data_re_fe, aes(x  = "Recurrence", y = "t_30"))    + geom_jitter(alpha=0.3)+ geom_bar(stat= "summary", alpha = 0.3)
 
 
 ## raw data graphs for all patients

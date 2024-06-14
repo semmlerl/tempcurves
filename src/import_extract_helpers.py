@@ -1,7 +1,5 @@
 import numpy as np
 from scipy.integrate import simpson
-from scipy.optimize import curve_fit, OptimizeWarning
-import warnings
 
 # check wheter tempcurves fulfills all inclusion criteria
 def is_valid_tempcurve(temp_curve_df): 
@@ -16,9 +14,7 @@ def is_valid_tempcurve(temp_curve_df):
 
 # cut temp curve at dipping point
 def find_dipping_point(temp_curve_df):    
-    point_20 =temp_curve_df[temp_curve_df.Temperature <= 30].index[0]
-    
-    temp_curve_df.plot()
+    point_20 =temp_curve_df[temp_curve_df.Temperature <= 20].index[0]  
     
     dipping_point = 0
     
@@ -28,9 +24,8 @@ def find_dipping_point(temp_curve_df):
             break
     
     output = temp_curve_df.iloc[dipping_point:]  
-    output['Time']= range(1,len(output['Time'])+1)
-    output.plot()
-     
+    output.iloc[:,0]= range(1,len(output['Time'])+1)
+    
     return output
     
 # Feature extraction function for a single temperature curve
@@ -51,6 +46,7 @@ def extract_features(temp_curve_df):
         features['t_10']=temp_curve_df[temp_curve_df.Temperature <= -10].iloc[0,0]
         features['t_20']=temp_curve_df[temp_curve_df.Temperature <= -20].iloc[0,0]
         features['t_30']=temp_curve_df[temp_curve_df.Temperature <= -30].iloc[0,0]
+        features['t_40']=temp_curve_df[temp_curve_df.Temperature <= -40].iloc[0,0]
         
     except: 
         pass
@@ -69,22 +65,9 @@ def extract_features(temp_curve_df):
         initial_slope = np.nan  # Handle cases with insufficient data points
     features['initial_slope'] = initial_slope
 
-    # Slope of temperature increase between 150-180 seconds
-    temp_150_180 = temp_curve_df[(temp_curve_df['Time'] >= 150) & (temp_curve_df['Time'] <= 180)]
-    if len(temp_150_180) > 1:  # Ensure there are enough points to fit a line
-        try:
-            slope_150_180 = np.polyfit(temp_150_180['Time'], temp_150_180['Temperature'], 1)[0]
-        except np.linalg.LinAlgError:
-            slope_150_180 = np.nan  # Handle cases with fitting issues
-    else:
-        slope_150_180 = np.nan  # Handle cases with insufficient data points
-    features['slope_150_180'] = slope_150_180
-
     # Cooling energy (integral below the temperature curve)
-    cooling_energy = simpson(y=temp_curve_df['Temperature'], x=temp_curve_df['Time'])
+    cooling_energy = simpson(y=(temp_curve_df['Temperature']), x=temp_curve_df['Time'])
     features['cooling_energy'] = cooling_energy
-
-
 
     return features
     
