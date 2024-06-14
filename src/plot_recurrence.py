@@ -17,7 +17,7 @@ with open("../../../data/extracted/raw_data_list.p", 'rb') as f: data_raw = pick
 
 # plotting
 
-ggplot(data_re_fe, aes(x  = "Recurrence", y = "t_30"))    + geom_jitter(alpha=0.3)+ geom_bar(stat= "summary", alpha = 0.3)
+ggplot(data_re_fe, aes(x  = "Recurrence", y = "t0"))    + geom_jitter(alpha=0.3)+ geom_bar(stat= "summary", alpha = 0.3)
 
 
 ## raw data graphs for all patients
