@@ -63,7 +63,7 @@ def main():
                 features = import_functions.extract_features(temp_curve_df)
                 features['ID'] = patient_id
                 features['trace_id'] = patient_id + str(patient_vein_count)
-                features['vein_count'] = patient_vein_count
+                features['application_count'] = patient_vein_count
                 extracted_features_list.append(features)
                 
                 ## extract raw data and add it to raw_data_list
