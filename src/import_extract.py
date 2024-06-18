@@ -53,9 +53,9 @@ def main():
                 temp_curve_df = import_functions.find_dipping_point(temp_curve_df)
                 
                 ##plotting cutted files
-                plt.plot(temp_curve_df['Temperature'])
-                plt.savefig("../../../data/dipping/" + patient_id + str(patient_vein_count) + ".png")
-                plt.close()
+                #plt.plot(temp_curve_df['Temperature'])
+                #plt.savefig("../../../data/dipping/" + patient_id + str(patient_vein_count) + ".png")
+                #plt.close()
                              
                 patient_vein_count += 1 # add a counter to create unique combination of patient and vein 
                 
@@ -63,6 +63,7 @@ def main():
                 features = import_functions.extract_features(temp_curve_df)
                 features['ID'] = patient_id
                 features['trace_id'] = patient_id + str(patient_vein_count)
+                features['vein_count'] = patient_vein_count
                 extracted_features_list.append(features)
                 
                 ## extract raw data and add it to raw_data_list
