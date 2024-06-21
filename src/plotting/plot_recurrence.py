@@ -8,7 +8,7 @@ import patchworklib as pw
 
 re_table = pd.read_excel('../../../data/recurrence.xlsx')
 
-with open("../../../data/extracted/recurrence_data_with_features.p", 'rb') as f: data_re_fe = pickle.load(f)
+with open("../../../../data/extracted/extracted_features_df.p", 'rb') as f: data_re_fe = pickle.load(f)
     
 with open("../../../data/extracted/extracted_features_list.p", 'rb') as f: data_fe = pickle.load(f)
 
@@ -17,7 +17,7 @@ with open("../../../data/extracted/raw_data_list.p", 'rb') as f: data_raw = pick
 
 # plotting
 
-ggplot(data_re_fe, aes(x  = "Recurrence", y = "application_count"))    + geom_jitter(alpha=0.3)+ geom_bar(stat= "summary", alpha = 0.3)
+ggplot(extracted_features_df, aes(x  = "Reconduction_Site", y = "t_40"))    + geom_jitter(alpha=0.3)+ geom_bar(stat= "summary", alpha = 0.3)
 
 
 ## raw data graphs for all patients

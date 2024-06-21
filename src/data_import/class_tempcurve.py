@@ -1,5 +1,4 @@
 import numpy as np
-from scipy.integrate import simpson
 
 class class_tempcurve: 
         
@@ -60,6 +59,7 @@ class class_tempcurve:
         
         self.features['initial_slope'] = initial_slope
         
-        # Cooling energy (integral below the temperature curve)
-        cooling_energy = simpson(y=(self.cutted_trace['Temperature']), x=self.cutted_trace['Time'])
-        self.features['cooling_energy'] = cooling_energy
+        # Cooling energy (integral below the maximum temperature)
+        self.features['cooling_energy'] = sum(x - self.features['max_temp'] for x in self.cutted_trace['Temperature'])
+        self.features['average_cooling_energy'] = self.features['cooling_energy']/ self.features['length']
+        

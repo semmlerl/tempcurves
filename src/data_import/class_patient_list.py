@@ -59,15 +59,23 @@ class class_patient_list:
             for tempcurve in patient.tempcurve_list: 
                 
                 print(tempcurve.trace_id)
+                
+                ## take the tempcurve features
                 data_dict = tempcurve.features
+                
+                ## add the patients vein count 
                 data_dict.update({
                     "vein_count'": patient.vein_count                    
                     })
+                
+                ## adds the clinical data, if no clinical data is available, 
                 clinical_data_dict = patient.clinical_data.to_dict('records')[0]
                 data_dict.update(clinical_data_dict)
-                print(clinical_data_dict)
+                
+                ## adds the dictionary to the list
                 extracted_features.append(data_dict)                     
         
+        ## generates a dataframe from the whole data
         extracted_features_df = pd.DataFrame(extracted_features)
                
         return extracted_features_df
