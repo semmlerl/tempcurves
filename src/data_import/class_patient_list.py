@@ -79,5 +79,8 @@ class class_patient_list:
         extracted_features_df = pd.DataFrame(extracted_features)
                
         return extracted_features_df
+    
+    def plot_tempcurves(self, outpath): 
         
-        
+        for patient in self.patient_list: 
+            patient.plot_tempcurves(outpath)

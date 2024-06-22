@@ -50,7 +50,11 @@ class class_patient:
     def add_clinical_data(self, clinical_data_frame): 
        
         self.clinical_data = clinical_data_frame[clinical_data_frame['ID'] == self.patient_id]
-    
+        
+    def plot_tempcurves(self, outpath): 
+        
+        for tempcurve in self.tempcurve_list: 
+            tempcurve.plot_tempcurve(outpath)    
     
 def is_valid_tempcurve(temp_curve_df): 
     
@@ -61,3 +65,4 @@ def is_valid_tempcurve(temp_curve_df):
         return False
     
     return True 
+

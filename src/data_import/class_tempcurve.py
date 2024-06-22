@@ -1,4 +1,6 @@
 import numpy as np
+from plotnine import ggplot, aes, geom_line, ggsave, geom_point
+
 
 class class_tempcurve: 
         
@@ -21,11 +23,13 @@ class class_tempcurve:
         dipping_point = 0
         
         for i in range(point_20,0, -1): 
-            if self.raw_data['Temperature'].iloc[i]>= self.raw_data['Temperature'].iloc[i - 1]:
+            if self.raw_data['Temperature'].iloc[i]>= self.raw_data['Temperature'].iloc[i - 1] and self.raw_data['Temperature'].iloc[i]>31:
                 dipping_point = i
                 break
+            
         
-        self.cutted_trace = self.raw_data.iloc[dipping_point:]  
+        self.dipping_point = dipping_point
+        self.cutted_trace = self.raw_data.iloc[dipping_point:].copy()  
         self.cutted_trace.iloc[:,0]= range(1,len(self.cutted_trace['Time'])+1)
         
         
@@ -62,4 +66,15 @@ class class_tempcurve:
         # Cooling energy (integral below the maximum temperature)
         self.features['cooling_energy'] = sum(x - self.features['max_temp'] for x in self.cutted_trace['Temperature'])
         self.features['average_cooling_energy'] = self.features['cooling_energy']/ self.features['length']
+        
+    def plot_tempcurve(self, outpath): 
+        
+        g = (
+            ggplot(self.raw_data, aes( x = 'Time', y = 'Temperature'))
+            + geom_line()
+            + geom_point(aes (x = self.dipping_point, y = self.raw_data['Temperature'].iloc[self.dipping_point]), color = "Red")
+        )
+        
+        ggsave(g, filename = (outpath + self.trace_id + ".png"))
+        print(outpath + self.trace_id + ".png saved")        
         

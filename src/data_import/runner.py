@@ -9,7 +9,7 @@ def main():
     folder_path = '../../../../data/tempcurves'
     
     # Generate a list of files starting with 'PKK' in the specified folder
-    uploaded_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith('.xlsx')]
+    uploaded_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith('.xlsx')][0:10]
     print(f'Found {len(uploaded_files)} files')
   
     # generate the patient list by initializing an instance of the class patient for each file, 
@@ -19,6 +19,8 @@ def main():
     
     ## adds the data from the recurrence_file to each patient
     patient_list.add_clinical_data('../../../../data/recurrence.xlsx')  
+    
+    patient_list.plot_tempcurves("../../../../data/plot/")
      
     # generates a dataframe with one line per tempcurve including:
         # tempcurve features
