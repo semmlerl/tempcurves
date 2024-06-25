@@ -37,11 +37,9 @@ def main():
     # Group extracted features by patient ID and calculate mean for each patient
     extracted_features_grouped = extracted_features_df.groupby('ID').mean().reset_index()
     
-    with open("../../../../data/extracted/extracted_features_df.p", 'wb') as f: 
-        pickle.dump(extracted_features_df, f, protocol = pickle.HIGHEST_PROTOCOL)
+    with open("../../../../data/extracted/extracted_features_df.p", 'wb') as f: pickle.dump(extracted_features_df, f, protocol = pickle.HIGHEST_PROTOCOL)
      
-    with open("../../../../data/extracted/extracted_features_grouped.p", 'wb') as f: 
-        pickle.dump(extracted_features_grouped, f, protocol = pickle.HIGHEST_PROTOCOL )
+    with open("../../../../data/extracted/extracted_features_grouped.p", 'wb') as f:  pickle.dump(extracted_features_grouped, f, protocol = pickle.HIGHEST_PROTOCOL )
         
 if __name__ == "__main__":
     main()

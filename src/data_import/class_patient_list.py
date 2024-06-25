@@ -57,9 +57,7 @@ class class_patient_list:
         
         for patient in self.patient_list:
             for tempcurve in patient.tempcurve_list: 
-                
-                print(tempcurve.trace_id)
-                
+                              
                 ## take the tempcurve features
                 data_dict = tempcurve.features
                 
