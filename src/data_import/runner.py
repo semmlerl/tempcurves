@@ -24,7 +24,7 @@ def main():
     #patient_list.plot_dipping_point("../../../../data/plot_raw/")
     
     ## plots the cutted trace and a selection of features
-    patient_list.plot_cutted_trace("../../../../data/plot_cutted/")
+    patient_list.plot_cutted_trace("../../../../data/plot_cutted_per_patient/")
      
     # generates a dataframe with one line per tempcurve including:
         # tempcurve features

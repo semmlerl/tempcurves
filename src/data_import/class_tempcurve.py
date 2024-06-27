@@ -113,8 +113,7 @@ class class_tempcurve:
             + geom_line(aes( y = 'Smooth'), color = "Green")
         )
         
-        ggsave(g, filename = (outpath + self.trace_id + ".png"))
-        print(outpath + self.trace_id + ".png saved")    
+        return g
              
 def exp_decay(x, a, tau, min_temp):
     ## returns an exponential decay function to model the temp decay 

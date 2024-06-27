@@ -9,6 +9,6 @@ with open("../../../data/extracted/extracted_features_grouped.p", 'rb') as f: ex
 
 # plotting
 
-ggplot(extracted_features_df, aes(x  = "Recurrence", y = "length"))    + geom_jitter(alpha=0.3)+ geom_bar(stat= "summary", alpha = 0.3)
+ggplot(extracted_features_df, aes(x  = "Recurrence", y = "max_temp"))    + geom_jitter(alpha=0.3)+ geom_bar(stat= "summary", alpha = 0.3)
 
 ggplot(extracted_features_df) + geom_histogram(aes( x = "length"))

@@ -1,5 +1,6 @@
 import pandas as pd
 from class_tempcurve import class_tempcurve
+import patchworklib as pwl
 
 class class_patient: 
     
@@ -58,9 +59,21 @@ class class_patient:
     
     def plot_cutted_trace(self, outpath): 
         
+        plot_list = []
+        
         for tempcurve in self.tempcurve_list: 
-            tempcurve.plot_cutted_trace(outpath)  
-    
+            plot_list.append(tempcurve.plot_cutted_trace(outpath))
+       
+        pw_plots = [pwl.load_ggplot(plot) for plot in plot_list] 
+       
+        # Dynamically combine the plots
+        layout = pw_plots[0]
+        for pw_plot in pw_plots[1:]:
+           layout |= pw_plot
+        
+        # Save or show the combined plot
+        layout.savefig(outpath + str(self.patient_id) + ".png")
+            
 def is_valid_tempcurve(temp_curve_df): 
     
     if temp_curve_df['Time'].iloc[-1] < 100:    # filter by length of temperaturecurve
