@@ -9,7 +9,7 @@ def main():
     folder_path = '../../../../data/tempcurves'
     
     # Generate a list of files starting with 'PKK' in the specified folder
-    uploaded_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith('.xlsx')]
+    uploaded_files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith('.xlsx')][0:10]
     print(f'Found {len(uploaded_files)} files')
   
     # generate the patient list by initializing an instance of the class patient for each file, 

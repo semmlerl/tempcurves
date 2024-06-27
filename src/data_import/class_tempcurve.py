@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd 
 from plotnine import ggplot, aes, geom_line, ggsave, geom_point
 import scipy.optimize
-import matplotlib.pyplot as plt
+import seaborn as sb
 
 
 class class_tempcurve: 
@@ -30,7 +30,6 @@ class class_tempcurve:
                 dipping_point = i
                 break
             
-        
         self.dipping_point = dipping_point
         self.cutted_trace = self.raw_data.iloc[dipping_point:].copy()  
         self.cutted_trace.iloc[:,0]= range(1,len(self.cutted_trace['Time'])+1)
@@ -107,14 +106,18 @@ class class_tempcurve:
         
     def plot_cutted_trace(self, outpath): 
         
-        g = (
-            ggplot(self.cutted_trace, aes( x = 'Time', y = 'Temperature'))
-            + geom_line()
-            + geom_line(aes( y = 'Smooth'), color = "Green")
+        # transposes the data into long format with a coloumn Time, a coloumn value with the temps and variable with the respective group(Temperature, Smooth)
+        data_long_format = pd.melt(self.cutted_trace, ['Time'])       
+        
+        g = sb.relplot(
+            data=data_long_format, kind="line",
+            x="Time", y="value", 
+            hue = "variable"
         )
         
-        return g
-             
+        return g 
+        
+    
 def exp_decay(x, a, tau, min_temp):
     ## returns an exponential decay function to model the temp decay 
     
