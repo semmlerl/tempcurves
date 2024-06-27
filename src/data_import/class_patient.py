@@ -1,5 +1,7 @@
 import pandas as pd
 from class_tempcurve import class_tempcurve
+import math
+import matplotlib.pyplot as plt
 
 
 class class_patient: 
@@ -66,7 +68,22 @@ class class_patient:
             plot_list.append(tempcurve.plot_cutted_trace(outpath))
        
         # generate a composed figure of all subfigures
-        # to be solved
+        # still to be implemented
+        """# Create a grid of subplots using matplotlib
+        ncol = 4
+        nrow = math.ceil(len(plot_list)/ncol)
+        fig, axes = plt.subplots(nrows=nrow, ncols=ncol)
+        
+        # Assign each Seaborn plot to a subplot
+        for ax, plot in zip(axes, plot_list):
+            plot.set(ax=ax)
+        
+        # Adjust layout
+        plt.tight_layout()
+        
+        # Show the plot
+        plt.show()"""
+       
             
 def is_valid_tempcurve(temp_curve_df): 
     
