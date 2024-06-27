@@ -78,7 +78,13 @@ class class_patient_list:
                
         return extracted_features_df
     
-    def plot_tempcurves(self, outpath): 
+    def plot_dipping_point(self, outpath): 
         
         for patient in self.patient_list: 
-            patient.plot_tempcurves(outpath)
+            patient.plot_dipping_point(outpath)
+            
+    def plot_cutted_trace(self, outpath): 
+        
+        for patient in self.patient_list: 
+            patient.plot_cutted_trace(outpath)
+    

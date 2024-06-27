@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd 
 from plotnine import ggplot, aes, geom_line, ggsave, geom_point
 import scipy.optimize
 import matplotlib.pyplot as plt
@@ -80,7 +81,8 @@ class class_tempcurve:
                                                   [(self.cutted_trace['Temperature'].iloc[0] + abs((self.features['min_temp']-1))), 100, self.features['min_temp']]
                                                     )
                                               )
-        self.features['tau_decay'] = params[1]
+        self.features['time_constant'] = params[1]
+        self.features['tau'] = 1/params[1]
         
         """ plotting the decay fit 
         a, tau, min_temp = params 
@@ -88,9 +90,11 @@ class class_tempcurve:
         plt.plot(self.cutted_trace['Time'].iloc[0:self.features['min_temp_t']], exp_decay(self.cutted_trace['Time'].iloc[0:self.features['min_temp_t']], a, tau, min_temp), '--', label="fitted")
         plt.title("Fitted Exponential Curve" + str(params))
         plt.show()
-        """        
+        """  
+        ## calculating a moving average of the trace
+        self.cutted_trace['Smooth'] = self.cutted_trace['Temperature'].rolling(5, center = True, min_periods = 1).mean()       
         
-    def plot_tempcurve(self, outpath): 
+    def plot_dipping_point(self, outpath): 
         
         g = (
             ggplot(self.raw_data, aes( x = 'Time', y = 'Temperature'))
@@ -101,8 +105,17 @@ class class_tempcurve:
         ggsave(g, filename = (outpath + self.trace_id + ".png"))
         print(outpath + self.trace_id + ".png saved")  
         
+    def plot_cutted_trace(self, outpath): 
         
+        g = (
+            ggplot(self.cutted_trace, aes( x = 'Time', y = 'Temperature'))
+            + geom_line()
+            + geom_line(aes( y = 'Smooth'), color = "Green")
+        )
         
+        ggsave(g, filename = (outpath + self.trace_id + ".png"))
+        print(outpath + self.trace_id + ".png saved")    
+             
 def exp_decay(x, a, tau, min_temp):
     ## returns an exponential decay function to model the temp decay 
     

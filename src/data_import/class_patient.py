@@ -51,10 +51,15 @@ class class_patient:
        
         self.clinical_data = clinical_data_frame[clinical_data_frame['ID'] == self.patient_id]
         
-    def plot_tempcurves(self, outpath): 
+    def plot_dipping_point(self, outpath): 
         
         for tempcurve in self.tempcurve_list: 
-            tempcurve.plot_tempcurve(outpath)    
+            tempcurve.plot_dipping_point(outpath)  
+    
+    def plot_cutted_trace(self, outpath): 
+        
+        for tempcurve in self.tempcurve_list: 
+            tempcurve.plot_cutted_trace(outpath)  
     
 def is_valid_tempcurve(temp_curve_df): 
     

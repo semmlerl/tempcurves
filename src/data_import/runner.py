@@ -20,7 +20,11 @@ def main():
     ## adds the data from the recurrence_file to each patient
     patient_list.add_clinical_data('../../../../data/recurrence.xlsx')  
     
-    patient_list.plot_tempcurves("../../../../data/plot/")
+    ## plots the raw data and the dipping point
+    #patient_list.plot_dipping_point("../../../../data/plot_raw/")
+    
+    ## plots the cutted trace and a selection of features
+    patient_list.plot_cutted_trace("../../../../data/plot_cutted/")
      
     # generates a dataframe with one line per tempcurve including:
         # tempcurve features

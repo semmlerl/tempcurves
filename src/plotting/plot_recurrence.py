@@ -1,4 +1,4 @@
-from plotnine import ggplot, aes, geom_point, geom_jitter, geom_line, geom_smooth, geom_bar, ggtitle, scale_x_discrete, geom_violin
+from plotnine import ggplot, aes, geom_point, geom_jitter, geom_line, geom_smooth, geom_bar, ggtitle, scale_x_discrete, geom_violin, geom_histogram
 import pickle
 
 ## loading data
@@ -9,4 +9,6 @@ with open("../../../data/extracted/extracted_features_grouped.p", 'rb') as f: ex
 
 # plotting
 
-ggplot(extracted_features_df, aes(x  = "Recurrence", y = "t20"))    + geom_jitter(alpha=0.3)+ geom_bar(stat= "summary", alpha = 0.3)
+ggplot(extracted_features_df, aes(x  = "Recurrence", y = "length"))    + geom_jitter(alpha=0.3)+ geom_bar(stat= "summary", alpha = 0.3)
+
+ggplot(extracted_features_df) + geom_histogram(aes( x = "length"))
