@@ -59,31 +59,40 @@ class class_patient:
         for tempcurve in self.tempcurve_list: 
             tempcurve.plot_dipping_point(outpath)  
     
-    def plot_cutted_trace(self, outpath): 
+    def plot_cutted_trace(self, outpath):         
+        """
+        Generates a plot with subplots for all tempcurves of a patient. 
+        Fhe cutted trace and features are displayed
         
-        plot_list = []
+        Arguments: 
+            - outpath: the path to the folder that the generated image will be saved to
+        """
         
-        # generate a figure per tempcurve
-        for tempcurve in self.tempcurve_list: 
-            plot_list.append(tempcurve.plot_cutted_trace(outpath))
-       
-        # generate a composed figure of all subfigures
-        # still to be implemented
-        """# Create a grid of subplots using matplotlib
+        # calculating the amount of rows         
         ncol = 4
-        nrow = math.ceil(len(plot_list)/ncol)
-        fig, axes = plt.subplots(nrows=nrow, ncols=ncol)
+        nrow = math.ceil(len(self.tempcurve_list)/ncol)
         
-        # Assign each Seaborn plot to a subplot
-        for ax, plot in zip(axes, plot_list):
-            plot.set(ax=ax)
+        ## checking that there is any data to plot and exiting the function if there is none
+        if nrow == 0: 
+            print(str(self.patient_id) + " has no data to be plotted")
+            return None 
         
+        ## generating the figure
+        fig, axes = plt.subplots(nrows=nrow, ncols=ncol, figsize = (20, 4 * nrow ))       
+        
+        # Assign each axes to the respective plot 
+        for ax, tempcurve in zip(axes.flatten(), self.tempcurve_list):        
+            tempcurve.plot_cutted_trace(ax)        
+
         # Adjust layout
-        plt.tight_layout()
+        fig.suptitle((str(self.patient_id) + ": " + "Recurrence: " + str(self.clinical_data['Recurrence'].iloc[0])), fontsize = 16)
         
-        # Show the plot
-        plt.show()"""
-       
+        plt.tight_layout()        
+        
+        plt.savefig(outpath + str(self.patient_id) +  ".png")  
+        
+        ## close the figure
+        plt.close()            
             
 def is_valid_tempcurve(temp_curve_df): 
     

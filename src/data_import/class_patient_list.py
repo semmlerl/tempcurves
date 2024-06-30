@@ -80,11 +80,23 @@ class class_patient_list:
     
     def plot_dipping_point(self, outpath): 
         
-        for patient in self.patient_list: 
+        _i = 0
+        
+        for patient in self.patient_list:             
+            _i += 1
             patient.plot_dipping_point(outpath)
+            print(f"{str(patient.patient_id)} has been saved. {_i} of {len(self.patient_list)} have been extracted")
             
     def plot_cutted_trace(self, outpath): 
+        """ Plot the cutted traces for all patients. 
+        
+        Arguments: 
+            - outpath
+        """        
+        # counter for the loop
+        _i = 0
         
         for patient in self.patient_list: 
+            _i += 1
             patient.plot_cutted_trace(outpath)
-    
+            print(f"{str(patient.patient_id)} has been saved. {_i} of {len(self.patient_list)} have been extracted")

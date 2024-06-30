@@ -3,6 +3,7 @@ import pandas as pd
 from plotnine import ggplot, aes, geom_line, ggsave, geom_point
 import scipy.optimize
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 class class_tempcurve: 
@@ -104,18 +105,30 @@ class class_tempcurve:
         ggsave(g, filename = (outpath + self.trace_id + ".png"))
         print(outpath + self.trace_id + ".png saved")  
         
-    def plot_cutted_trace(self, outpath): 
+    def plot_cutted_trace(self, ax): 
         
+        """
+        plots the cutted_trace on the subplot axes of the calling plot
+        
+        Arguments: 
+            - ax : an axes class object from mathplotlib
+            
+        """       
         # transposes the data into long format with a coloumn Time, a coloumn value with the temps and variable with the respective group(Temperature, Smooth)
-        data_long_format = pd.melt(self.cutted_trace, ['Time'])       
+        data_long_format = pd.melt(self.cutted_trace, ['Time'])      
         
-        g = sns.relplot(
-            data=data_long_format, kind="line",
+        ## generate the lineplot 
+        p = sns.lineplot(
+            data=data_long_format, 
             x="Time", y="value", 
-            hue = "variable"
-        )
+            hue = "variable", 
+            legend = False, 
+            ax = ax            
+        )        
         
-        return g        
+        p.set(title = self.trace_id, xlabel = None, ylabel = None)
+                                  
+        return p
     
 def exp_decay(x, a, tau, min_temp):
     ## returns an exponential decay function to model the temp decay 
