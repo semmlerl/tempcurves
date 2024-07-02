@@ -38,11 +38,13 @@ class class_tempcurve:
         
     def extract_features(self):
         
+        ## calculating a moving average of the trace
+        self.cutted_trace['Smooth'] = self.cutted_trace['Temperature'].rolling(11, center = True, min_periods = 1).mean()        
+        
         self.features['mean_temp'] = self.cutted_trace['Temperature'].mean()
         self.features['min_temp'] = self.cutted_trace['Temperature'].min()
         self.features['min_temp_t'] = np.argmin(self.cutted_trace['Temperature'])
         self.features['max_temp'] = self.cutted_trace['Temperature'].max()
-        self.features['std_temp'] = self.cutted_trace['Temperature'].std()
         self.features['length'] = self.cutted_trace['Temperature'].shape[0]
         
         # kinetics of decline
@@ -58,17 +60,9 @@ class class_tempcurve:
             
         except: 
             pass
-        
-        # Slope of temperature decrease starting with timepoint 0
-        try:
-                initial_slope = np.polyfit(self.cutted_trace['Time'], self.cutted_trace['Temperature'], 1)[0]
-        except np.linalg.LinAlgError:
-                initial_slope = np.nan  # Handle cases with fitting issues
-        
-        self.features['initial_slope'] = initial_slope
-        
+               
         # Cooling energy (integral below the maximum temperature)
-        self.features['cooling_energy'] = sum(x - self.features['max_temp'] for x in self.cutted_trace['Temperature'])
+        self.features['cooling_energy'] = sum(self.features['max_temp'] - x for x in self.cutted_trace['Temperature'])
         self.features['average_cooling_energy'] = self.features['cooling_energy']/ self.features['length']
         
         ## calculate the exponential decay fit  
@@ -90,9 +84,7 @@ class class_tempcurve:
         plt.plot(self.cutted_trace['Time'].iloc[0:self.features['min_temp_t']], exp_decay(self.cutted_trace['Time'].iloc[0:self.features['min_temp_t']], a, tau, min_temp), '--', label="fitted")
         plt.title("Fitted Exponential Curve" + str(params))
         plt.show()
-        """  
-        ## calculating a moving average of the trace
-        self.cutted_trace['Smooth'] = self.cutted_trace['Temperature'].rolling(5, center = True, min_periods = 1).mean()       
+        """      
         
     def plot_dipping_point(self, outpath): 
         
