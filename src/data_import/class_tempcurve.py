@@ -3,8 +3,6 @@ import pandas as pd
 from plotnine import ggplot, aes, geom_line, ggsave, geom_point
 import scipy.optimize
 import seaborn as sns
-import matplotlib.pyplot as plt
-
 
 class class_tempcurve: 
         

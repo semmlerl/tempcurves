@@ -24,13 +24,11 @@ def main():
     #patient_list.plot_dipping_point("../../../../data/plot_raw/")
     
     ## plots the cutted trace and a selection of features
-    patient_list.plot_cutted_trace("../../../../data/plot_cutted_per_patient/")
+    #patient_list.plot_cutted_trace("../../../../data/plot_cutted_per_patient/")
      
-    # generates a dataframe with one line per tempcurve including:
-        # tempcurve features
-        # patients vein count
-        # patients clinical data
-    extracted_features_df = patient_list.generate_data_frame_features_per_tempcurve()
+    # generating extracted_data_df
+    #extracted_features_df = patient_list.generate_data_frame_features_per_tempcurve() # exporting features per curve
+    extracted_features_df = patient_list.generate_data_frame_raw_data_per_tempcurve()  # exporting raw data_per curve
     
      # Verify the structure of the extracted features DataFrame
     print("Extracted Features DataFrame structure:")
@@ -41,9 +39,9 @@ def main():
     # Group extracted features by patient ID and calculate mean for each patient
     extracted_features_grouped = extracted_features_df.groupby('ID').mean().reset_index()
     
-    with open("../../../../data/extracted/extracted_features_df.p", 'wb') as f: pickle.dump(extracted_features_df, f, protocol = pickle.HIGHEST_PROTOCOL)
+    with open("../../../../data/extracted/extracted_raw_data_df.p", 'wb') as f: pickle.dump(extracted_features_df, f, protocol = pickle.HIGHEST_PROTOCOL)
      
-    with open("../../../../data/extracted/extracted_features_grouped.p", 'wb') as f:  pickle.dump(extracted_features_grouped, f, protocol = pickle.HIGHEST_PROTOCOL )
+    #with open("../../../../data/extracted/extracted_features_grouped.p", 'wb') as f:  pickle.dump(extracted_features_grouped, f, protocol = pickle.HIGHEST_PROTOCOL )
         
 if __name__ == "__main__":
     main()

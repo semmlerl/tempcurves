@@ -78,6 +78,41 @@ class class_patient_list:
                
         return extracted_features_df
     
+    def generate_data_frame_raw_data_per_tempcurve(self): 
+        """
+        Returns a dataframe with one line per tempcurve including all clinical features and the raw data, starting
+        from the dipping point till the end
+
+        """
+        
+        extracted_features = []       
+        
+        for patient in self.patient_list:
+            for tempcurve in patient.tempcurve_list: 
+                                           
+                ## add the patients vein count 
+                data_dict ={
+                    "vein_count'": patient.vein_count                    
+                    }
+                
+                ## adds the clinical data, if no clinical data is available, 
+                clinical_data_dict = patient.clinical_data.to_dict('records')[0]
+                data_dict.update(clinical_data_dict)
+                
+                ## adds the cutted trace 
+                cutted_trace_dict = tempcurve.cutted_trace['Temperature'].to_dict()
+                cutted_trace_dict = {f't{i}': value for i, (key, value) in enumerate(cutted_trace_dict.items())}
+                data_dict.update(cutted_trace_dict)
+                
+                ## adds the dictionary to the list
+                extracted_features.append(data_dict)                     
+        
+        ## generates a dataframe from the whole data
+        extracted_features_df = pd.DataFrame(extracted_features)      
+        
+        
+        return extracted_features_df
+    
     def plot_dipping_point(self, outpath): 
         
         _i = 0
