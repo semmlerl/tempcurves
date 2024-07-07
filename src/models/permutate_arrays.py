@@ -2,10 +2,9 @@ import numpy as np
 import itertools
 import random
 
-
-    num_patients, num_tempcurves, num_timepoints, num_channels = array.shape
-    num_permutations = 100
-    
+def generate__permutated_array(x_train, y_train, num_permutations):
+    num_patients, num_tempcurves, num_timepoints, num_channels = x_train.shape
+        
     permutations = generate_random_permutations(num_tempcurves, num_permutations)
     
     # Initialize a list to collect the extended arrays
@@ -16,7 +15,7 @@ import random
         # Iterate over each permutation
         for perm in permutations:
             # Reorder the tempcurves dimension according to the current permutation
-            reordered_array = array[patient_idx, perm, :, :]
+            reordered_array = x_train[patient_idx, perm, :, :]
             # Add the reordered array to the extended arrays list
             extended_arrays.append(reordered_array)
     
@@ -26,15 +25,11 @@ import random
     # Reshape the extended array to have the correct new dimensions
     extended_array = extended_array.reshape(-1, num_tempcurves, num_timepoints, num_channels)
     
-# Example usage
-# Original 4D numpy array with shape (patient_id, tempcurves, timepoint, channel)
-original_array = np.random.rand(2, 3, 4, 5)  # Example array with random values
-
-# Extend the array with a limited number of permutations
-extended_array = extend_array_with_limited_permutations(original_array, num_permutations=10)
-
-print("Original shape:", original_array.shape)
-print("Extended shape:", extended_array.shape)
+    # expand the labels by the respective length
+    y_labels = y_train.repeat(num_permutations).reset_index(drop=True)
+    
+    return extended_array, y_labels
+    
 
 def generate_random_permutations(n, k):
     permutations = set()
