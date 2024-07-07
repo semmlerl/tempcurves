@@ -14,9 +14,11 @@ def main():
     
     # generating the array holding the raw data per patient
     array = format_raw_data_array(data)
+    array = extended_array
              
     # generating the dataframe holding the recurrence 
     labels_df = data.groupby('ID')['Recurrence'].mean().reset_index()['Recurrence']
+    labels_df = labels_df.repeat(100).reset_index(drop=True)
       
     # normalizing features data using min_max_normalizer 
     array = (array + 60)/100
@@ -61,15 +63,12 @@ def main():
     
     print(f"Test accuracy: {test_acc}")
     
-    plot_confusion_matrix(y_pred_prob, y_test, cutoff = 0.2)
+    plot_confusion_matrix(y_pred_prob, y_test, cutoff = 0.4)
     
     plot = pd.DataFrame({'pred': y_pred_prob, 'true': y_test})
     
     plot.groupby('true')['pred'].hist(alpha = 0.5, legend = True)
-    
-if __name__ == "__main__":
-    main()
-    
+      
 def plot_confusion_matrix(predicted, actual, cutoff = 0.5): 
     """
     Generates a confusion matrix for the respective model 
@@ -125,3 +124,6 @@ def format_raw_data_array(data):
         array[i, :rows.shape[0], :, 0] = rows  
         
     return array
+
+if __name__ == "__main__":
+    main()
