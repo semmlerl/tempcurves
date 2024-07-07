@@ -4,11 +4,12 @@ import pickle
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Input, Dropout, Conv2D, MaxPooling2D, Flatten
+from tensorflow.keras.layers import Dense, Input, Conv2D, MaxPooling2D, Flatten, Dropout
 from sklearn.metrics import confusion_matrix,ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
-from permutate_arrays import generate__permutated_array, generate_random_permutations
 from sklearn.metrics import roc_curve, auc
+import random
+import math
 
 def main(): 
 
@@ -21,9 +22,10 @@ def main():
     labels_df = data.groupby('ID')['Recurrence'].mean().reset_index()['Recurrence']    
     
     # Splitting the data into training and test sets
-    X_train, X_test, y_train, y_test = train_test_split(array, labels_df, test_size=0.2, random_state=None)
-
-    X_train, y_train = generate__permutated_array(X_train, y_train, 100)
+    X_train, X_test, y_train, y_test = train_test_split(array, labels_df, test_size=0.2, random_state=42)
+    
+    # expanding the training data_set via permutation
+    X_train, y_train = generate__permutated_array_v0(X_train, y_train, 100)
     
     # Convert DataFrames to numpy arrays for TensorFlow
     y_train = y_train.to_numpy()
@@ -39,24 +41,28 @@ def main():
         Dense(1, activation='sigmoid')
     ])    
     
+    # output a model summary
     model.summary()
    
     # Compile the model
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     
     # Train the model
-    model.fit(X_train, y_train, epochs=1, batch_size=32, validation_split=0.2)
+    model.fit(X_train, y_train, epochs=2, batch_size=32, validation_split=0.2)
     
     # Evaluate the model on test data
     test_loss, test_acc = model.evaluate(X_test, y_test)
-    
     y_pred_prob = model.predict(X_test).flatten()
    
-    roc_curve(y_test, y_pred_prob)
-   
+    # calculate the roc metric
+    calculate_roc(y_test, y_pred_prob)  
+  
+    # plot distribution of predictions
     plot = pd.DataFrame({'pred': y_pred_prob, 'true': y_test})
-    
     plot.groupby('true')['pred'].hist(alpha = 0.5, legend = True)
+    
+    # plot confusion matrix
+    plot_confusion_matrix(y_pred_prob, y_test, cutoff = 0.2)
       
 def plot_confusion_matrix(predicted, actual, cutoff = 0.5): 
     """
@@ -78,8 +84,7 @@ def plot_confusion_matrix(predicted, actual, cutoff = 0.5):
     conf_mat = confusion_matrix(actual, predicted)
     displ = ConfusionMatrixDisplay(confusion_matrix=conf_mat)
     displ.plot()
-    
-    
+      
 def format_raw_data_array(data): 
     """
     Takes the input dataframe with a line per tempcurve, outputs a numpy 3d array: 
@@ -125,7 +130,7 @@ def format_raw_data_array(data):
         
     return array
 
-def roc_curve(true_labels, predicted_labels): 
+def calculate_roc(true_labels, predicted_labels): 
     """
     creates a ROC curve for a binary classifier
 
@@ -152,5 +157,117 @@ def roc_curve(true_labels, predicted_labels):
 
     print(f"AUC: {roc_auc}")
 
+def generate__permutated_array(X_train, y_train, num_permutations):
+    """
+    Given the array X_train, the function generates num_permutations permutations of the tempcurves of each patient and builds a new 
+    array with these, which is num_permutations * the number of patients. It does a few things to be noted: 
+        -it only permutates the actual tempcurves but not the placeholder rows for patients who have less than the maxmimum number of tempcurves. 
+        aka each permutation starts with tempcurves in some order and ends with zero lines. 
+        - if the number of tempcurves per patients does not allow sufficient permutations (4 tempcurves only allow 4! = 24 tempcurves), 
+        there will be less permutations to exclude copies 
+    
+    Parameters
+    ----------
+    X_train : the array of training data
+    y_train : the series of lables
+    num_permutations : the number of permutations to create per patient 
+
+    Returns
+    -------
+    extended_array : the extended array of training data       
+    y_labels : the extended series of labels         
+    """
+    num_patients, num_tempcurves, num_timepoints, num_channels = X_train.shape        
+    
+    # Initialize a list to collect the extended arrays
+    extended_arrays = []
+    extended_labels = []
+    
+    # Iterate over each patient
+    for patient_idx in range(num_patients):
+        
+        # get the number of tempcurves for that patient, so that the permutation is only done on actual tempcurves
+        row_means = np.mean(X_train[patient_idx,:,:,:], axis=1)
+        
+        try: 
+            first_row_index = np.where(row_means == 1)[0][0]
+        except: 
+            first_row_index = num_tempcurves
+        
+        ## generate permutations of the tempcurves 
+        permutations = generate_random_permutations(first_row_index, num_permutations)
+        
+        # Iterate over each permutation
+        for perm in permutations:
+            
+            # Initialize the 3D numpy array with the fill value 1
+            reordered_array = np.full((num_tempcurves, num_timepoints, 1), dtype = float, fill_value=1)
+            
+            # Reorder the tempcurves dimension according to the current permutation            
+            reordered_array[0:first_row_index, :, 0] = X_train[patient_idx, perm, :, 0]
+            
+            # Add the reordered array to the extended arrays list
+            extended_arrays.append(reordered_array)
+            
+            # Add the label to the extended_labels
+            extended_labels.append(y_train.iloc[patient_idx])
+    
+    # Convert the extended arrays list to a numpy array
+    extended_array = np.array(extended_arrays)
+    
+    # Reshape the extended array to have the correct new dimensions
+    extended_array = extended_array.reshape(-1, num_tempcurves, num_timepoints, num_channels)  
+    
+    # reformat extended_labels to Pandas series   
+    extended_labels = pd.Series(extended_labels)
+    
+    return extended_array, extended_labels
+    
+def generate_random_permutations(n, k):
+    
+    """
+    Given a range(n) this function returns k unique permutations of that range. If there is not enough permtuations, a shorter list will be returned
+
+    Parameters
+    ----------
+    n : range 
+    k : amount of permutations        
+
+  
+    """
+    permutations = set()
+    
+    while len(permutations) < k and len(permutations) < math.factorial(n) :
+        perm = tuple(random.sample(range(n), n))
+        permutations.add(perm)
+        
+    return list(permutations)
+def generate__permutated_array_v0(x_train, y_train, num_permutations):
+    num_patients, num_tempcurves, num_timepoints, num_channels = x_train.shape
+        
+    permutations = generate_random_permutations(num_tempcurves, num_permutations)
+    
+    # Initialize a list to collect the extended arrays
+    extended_arrays = []
+    
+    # Iterate over each patient
+    for patient_idx in range(num_patients):
+        # Iterate over each permutation
+        for perm in permutations:
+            # Reorder the tempcurves dimension according to the current permutation
+            reordered_array = x_train[patient_idx, perm, :, :]
+            # Add the reordered array to the extended arrays list
+            extended_arrays.append(reordered_array)
+    
+    # Convert the extended arrays list to a numpy array
+    extended_array = np.array(extended_arrays)
+    
+    # Reshape the extended array to have the correct new dimensions
+    extended_array = extended_array.reshape(-1, num_tempcurves, num_timepoints, num_channels)
+    
+    # expand the labels by the respective length
+    y_labels = y_train.repeat(num_permutations).reset_index(drop=True)
+    
+    return extended_array, y_labels
 if __name__ == "__main__":
     main()
