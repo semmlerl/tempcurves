@@ -34,10 +34,12 @@ def main():
     # Define the neural network model
     model = Sequential([
         Input(shape =(X_train.shape[1],X_train.shape[2],1)),
-        Conv2D(filters=32, kernel_size=(3,3), activation='relu'),
+        Conv2D(filters=32, kernel_size=(1,3), activation='relu'),
         MaxPooling2D(pool_size=(8,8)),
         Flatten(), 
-        Dense(64, activation='relu'),
+        Dense(256, activation='relu'),
+        Dropout(.5), 
+        Dense(64), 
         Dense(1, activation='sigmoid')
     ])    
     
