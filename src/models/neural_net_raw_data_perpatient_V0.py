@@ -25,7 +25,7 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(array, labels_df, test_size=0.2, random_state=42)
     
     # expanding the training data_set via permutation
-    X_train, y_train = generate__permutated_array_v0(X_train, y_train, 100)
+    X_train, y_train = generate__permutated_array(X_train, y_train, 100)
     
     # Convert DataFrames to numpy arrays for TensorFlow
     y_train = y_train.to_numpy()
@@ -48,7 +48,7 @@ def main():
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     
     # Train the model
-    model.fit(X_train, y_train, epochs=2, batch_size=32, validation_split=0.2)
+    model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2)
     
     # Evaluate the model on test data
     test_loss, test_acc = model.evaluate(X_test, y_test)
@@ -220,7 +220,13 @@ def generate__permutated_array(X_train, y_train, num_permutations):
     
     # reformat extended_labels to Pandas series   
     extended_labels = pd.Series(extended_labels)
+
+    # shuffle array of permutated training data and labels 
+    shuffle = random.sample(range(len(extended_labels)),len(extended_labels) )
     
+    extended_labels = extended_labels[shuffle]
+    extended_array = extended_array[shuffle, :,:,:]
+
     return extended_array, extended_labels
     
 def generate_random_permutations(n, k):
@@ -242,6 +248,7 @@ def generate_random_permutations(n, k):
         permutations.add(perm)
         
     return list(permutations)
+
 def generate__permutated_array_v0(x_train, y_train, num_permutations):
     num_patients, num_tempcurves, num_timepoints, num_channels = x_train.shape
         
@@ -268,6 +275,10 @@ def generate__permutated_array_v0(x_train, y_train, num_permutations):
     # expand the labels by the respective length
     y_labels = y_train.repeat(num_permutations).reset_index(drop=True)
     
+    # shuffle the extended dataset
+    
+    
     return extended_array, y_labels
+
 if __name__ == "__main__":
     main()
