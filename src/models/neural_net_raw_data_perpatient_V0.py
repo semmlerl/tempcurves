@@ -15,6 +15,9 @@ def main():
 
     with open("../../../../data/extracted/extracted_raw_data_df.p", 'rb') as f: data = pickle.load(f)    
     
+    data = data[data["vein_count'"]< 13]
+    data = data[data["vein_count'"]> 3]
+    
     # generating the array holding the raw data per patient
     array = format_raw_data_array(data)
                  
@@ -34,12 +37,12 @@ def main():
     # Define the neural network model
     model = Sequential([
         Input(shape =(X_train.shape[1],X_train.shape[2],1)),
-        Conv2D(filters=32, kernel_size=(1,3), activation='relu'),
-        MaxPooling2D(pool_size=(8,8)),
-        Flatten(), 
-        Dense(256, activation='relu'),
-        Dropout(.5), 
-        Dense(64), 
+        Conv2D(filters=32, kernel_size=(1,3), activation='relu'),    
+        MaxPooling2D((8,8)), 
+        Flatten(),   
+        Dense(128), 
+        Dropout(0.5),
+        Dense(8, activation='relu'),
         Dense(1, activation='sigmoid')
     ])    
     
@@ -50,8 +53,8 @@ def main():
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     
     # Train the model
-    model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.2)
-    
+    model.fit(X_train, y_train, epochs=5, batch_size=32, validation_split=0.2)
+     
     # Evaluate the model on test data
     test_loss, test_acc = model.evaluate(X_test, y_test)
     y_pred_prob = model.predict(X_test).flatten()
@@ -64,7 +67,7 @@ def main():
     plot.groupby('true')['pred'].hist(alpha = 0.5, legend = True)
     
     # plot confusion matrix
-    plot_confusion_matrix(y_pred_prob, y_test, cutoff = 0.2)
+    plot_confusion_matrix(y_pred_prob, y_test, cutoff = 0.3)
       
 def plot_confusion_matrix(predicted, actual, cutoff = 0.5): 
     """
