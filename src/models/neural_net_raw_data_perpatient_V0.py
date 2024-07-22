@@ -13,7 +13,7 @@ import math
 
 def main(): 
 
-    with open("../../../../data/extracted/extracted_raw_data_df.p", 'rb') as f: data = pickle.load(f)    
+    with open("../../../local_env/data/extracted/extracted_raw_data_df.p", 'rb') as f: data = pickle.load(f)    
     
     data = data[data["vein_count'"]< 13]
     data = data[data["vein_count'"]> 3]
