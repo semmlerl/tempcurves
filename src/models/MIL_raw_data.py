@@ -1,69 +1,84 @@
 import numpy as np
 import keras
+import pickle
+from sklearn.model_selection import train_test_split
 from keras import layers
 from keras import ops
 from tqdm import tqdm
 from matplotlib import pyplot as plt
 
+
 plt.style.use("ggplot")
 
 POSITIVE_CLASS = 1
-BAG_COUNT = 1000
-VAL_BAG_COUNT = 300
-BAG_SIZE = 10
+BAG_SIZE = 12
 PLOT_SIZE = 3
-ENSEMBLE_AVG_COUNT = 1
+ENSEMBLE_AVG_COUNT = 5
 
 
-def create_bags(input_data, input_labels, positive_class, bag_count, instance_count):
-    # Set up bags.
-    bags = []
-    bag_labels = []
+def format_raw_data_array(data): 
+    """
+    Takes the input dataframe with a line per tempcurve, outputs a numpy 3d array: 
+        - dimensions: number_of_patients, maximum number of tempcurves per patient, maximum length of tempcurve in seconds, channel (tensorflow cnn need a 3 channel)
+        - all missing data (e.g. shorter tempcurves or lower number of tempcurves is set to 40°C as the maximum temperature )
+        
+    replaces all NaN by 40, normalizing data using min max, replacing all lower and higher values 
 
-    # Normalize input data.
-    input_data = np.divide(input_data, 255.0)
-
-    # Count positive samples.
-    count = 0
-
-    for _ in range(bag_count):
-        # Pick a fixed size random subset of samples.
-        index = np.random.choice(input_data.shape[0], instance_count, replace=False)
-        instances_data = input_data[index]
-        instances_labels = input_labels[index]
-
-        # By default, all bags are labeled as 0.
-        bag_label = 0
-
-        # Check if there is at least a positive class in the bag.
-        if positive_class in instances_labels:
-            # Positive bag will be labeled as 1.
-            bag_label = 1
-            count += 1
-
-        bags.append(instances_data)
-        bag_labels.append(np.array([bag_label]))
-
-    print(f"Positive bags: {count}")
-    print(f"Negative bags: {bag_count - count}")
-
-    return (list(np.swapaxes(bags, 0, 1)), np.array(bag_labels))
-
-
-# Load the MNIST dataset.
-(x_train, y_train), (x_val, y_val) = keras.datasets.mnist.load_data()
-
-# Create training data.
-train_data, train_labels = create_bags(
-    x_train, y_train, POSITIVE_CLASS, BAG_COUNT, BAG_SIZE
-)
-
-# Create validation data.
-val_data, val_labels = create_bags(
-    x_val, y_val, POSITIVE_CLASS, VAL_BAG_COUNT, BAG_SIZE
-)
+    """
+       
+    ## formatting raw data into 3d array per patient 
+    raw_data = data.iloc[:,13 :441].join(data['ID'])
+    raw_data.fillna(40, inplace = True)
+    
+    unique_ids = raw_data['ID'].unique()
+    num_ids = len(unique_ids)
+    
+    # Number of columns (excluding the ID column)
+    num_columns = raw_data.shape[1] - 1
+    
+    # Get maximum number of rows for any id
+    max_rows = raw_data.groupby('ID').size().max()
+    
+    # Initialize the 3D numpy array with the fill value 40
+    array = np.full((num_ids, max_rows, num_columns, 1), fill_value=40)
+    
+    # Fill the array with the data from the dataframe
+    for i, uid in enumerate(unique_ids):
+        # Select rows for the current id
+        rows = raw_data[raw_data['ID'] == uid].iloc[:, :-1].values
+    
+        # Fill the corresponding slice in the 3D array
+        array[i, :rows.shape[0], :, 0] = rows  
+    
+    # normalizing features data using min_max_normalizer 
+    array = (array + 60)/100
+    
+    ## replacing all values > 1 with 1
+    array[array > 1] = 1    
+    
+    ## replacing all values <0 with 0
+    array[array < 0] = 0     
+        
+    return array
 
 
+with open("../../../local_env/data/extracted/extracted_raw_data_df.p", 'rb') as f: data = pickle.load(f)  
+
+data = data[data["vein_count'"]< 13]
+data = data[data["vein_count'"]> 3]
+    
+# generating the array holding the raw data per patient
+array = format_raw_data_array(data)
+
+# generating the dataframe holding the recurrence 
+labels_df = np.array(data.groupby('ID')['Recurrence'].mean().reset_index()['Recurrence'])
+
+# Splitting the data into training and test sets
+x_train, x_val, y_train, y_val = train_test_split(array, labels_df, test_size=0.2, random_state=42)
+
+x_train = list(np.swapaxes(x_train, 0, 1))
+x_val = list(np.swapaxes(x_val, 0, 1))
+             
 class MILAttentionLayer(layers.Layer):
     """Implementation of the attention-based Deep MIL layer.
 
@@ -217,8 +232,8 @@ def plot(data, labels, bag_class, predictions=None, attention_weights=None):
 
 
 # Plot some of validation data bags per class.
-plot(val_data, val_labels, "positive")
-plot(val_data, val_labels, "negative")
+plot(x_val, y_val, "positive")
+plot(x_train, y_train, "negative")
 
 
 def create_model(instance_shape):
@@ -319,7 +334,7 @@ def train(train_data, train_labels, val_data, val_labels, model):
 
 
 # Building model(s).
-instance_shape = train_data[0][0].shape
+instance_shape = x_train[0][0].shape
 models = [create_model(instance_shape) for _ in range(ENSEMBLE_AVG_COUNT)]
 
 # Show single model architecture.
@@ -327,7 +342,7 @@ print(models[0].summary())
 
 # Training model(s).
 trained_models = [
-    train(train_data, train_labels, val_data, val_labels, model)
+    train(x_train, y_train, x_val, y_val, model)
     for model in tqdm(models)
 ]
 
@@ -368,12 +383,12 @@ def predict(data, labels, trained_models):
 
 
 # Evaluate and predict classes and attention scores on validation data.
-class_predictions, attention_params = predict(val_data, val_labels, trained_models)
+class_predictions, attention_params = predict(x_val, y_val, trained_models)
 
 # Plot some results from our validation data.
 plot(
-    val_data,
-    val_labels,
+    x_val,
+    y_val,
     "positive",
     predictions=class_predictions,
     attention_weights=attention_params,
