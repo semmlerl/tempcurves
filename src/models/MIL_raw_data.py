@@ -13,7 +13,7 @@ plt.style.use("ggplot")
 POSITIVE_CLASS = 1
 BAG_SIZE = 12
 PLOT_SIZE = 3
-ENSEMBLE_AVG_COUNT = 5
+ENSEMBLE_AVG_COUNT = 1
 
 
 def format_raw_data_array(data): 
@@ -264,9 +264,12 @@ def create_model(instance_shape):
 
     # Concatenate layers.
     concat = layers.concatenate(multiply_layers, axis=1)
+    
+    # added dense layer
+    dense_3 = layers.Dense(128, activation = "relu")(concat)
 
     # Classification output node.
-    output = layers.Dense(2, activation="softmax")(concat)
+    output = layers.Dense(2, activation="softmax")(dense_3)
 
     return keras.Model(inputs, output)
 
