@@ -3,6 +3,7 @@ import keras
 import pickle
 from sklearn.model_selection import train_test_split
 from keras import layers
+from keras.layers import Conv1D, MaxPooling1D
 from matplotlib import pyplot as plt
 from MILAttentionLayer import MILAttentionLayer
 from metrics import calc_plot_roc, plot_predict, plot_confusion_matrix
@@ -108,6 +109,49 @@ def create_model(instance_shape, bag_size):
 
     return keras.Model(inputs, output)
 
+def create_model_CNN(instance_shape, bag_size):
+    # Extract features from inputs.
+    inputs, embeddings = [], []
+    
+    conv1_1 = Conv1D(16, kernel_size=(3), activation='relu') 
+    mpool_1 = MaxPooling1D(2)       
+    
+    shared_dense_layer_1 = layers.Dense(64, activation="relu")
+    
+    for _ in range(bag_size):
+        inp = layers.Input(instance_shape)
+        x = conv1_1(inp)
+        x = mpool_1(x)
+        flatten = layers.Flatten()(x)
+        dense_1 = shared_dense_layer_1(flatten)
+
+        inputs.append(inp)
+        embeddings.append(dense_1)
+
+    # Invoke the attention layer.
+    alpha = MILAttentionLayer(
+        weight_params_dim=256,
+        kernel_regularizer=keras.regularizers.L2(0.01),
+        use_gated=True,
+        name="alpha",
+    )(embeddings)
+
+    # Multiply attention weights with the input layers.
+    multiply_layers = [
+        layers.multiply([alpha[i], embeddings[i]]) for i in range(len(alpha))
+    ]
+
+    # Concatenate layers.
+    concat = layers.concatenate(multiply_layers, axis=1)
+    
+    # added dense layer
+    dense_3 = layers.Dense(128, activation = "relu")(concat)
+
+    # Classification output node.
+    output = layers.Dense(1, activation="sigmoid")(dense_3)
+
+    return keras.Model(inputs, output)
+
 def train(train_data, train_labels, val_data, val_labels, model):
     # Train model.
     # Prepare callbacks.
@@ -120,7 +164,7 @@ def train(train_data, train_labels, val_data, val_labels, model):
     model_checkpoint = keras.callbacks.ModelCheckpoint(
         file_path,
         monitor="val_loss",
-        verbose=0,
+        verbose=2,
         mode="min",
         save_best_only=True,
         save_weights_only=True,
@@ -148,7 +192,7 @@ def train(train_data, train_labels, val_data, val_labels, model):
         epochs=20,   
         batch_size=1,
         callbacks=[early_stopping, model_checkpoint],
-        verbose=0,
+        verbose=1,
     )
 
     # Load best weights.
@@ -199,7 +243,7 @@ def main():
       
     # Building model(s).
     instance_shape = x_train[0][0].shape
-    model = create_model(instance_shape, BAG_SIZE)
+    model = create_model_CNN(instance_shape, BAG_SIZE)
     
     # Show single model architecture.
     print(model.summary())
