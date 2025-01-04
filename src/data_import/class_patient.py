@@ -18,12 +18,16 @@ class class_patient:
         ## loop through all sheets of the respective file 
         for sheet_name in xls.sheet_names:
             
-            temp_curve_df = pd.read_excel(xls, sheet_name=sheet_name, usecols=[0, 1])  # Only load the first two columns
-            temp_curve_df.columns = ['Time', 'Temperature']  # Ensure columns are named correctly
-         
-                  
+            temp_curve_df = pd.read_excel(xls, sheet_name=sheet_name, usecols=[0, 1])  # Only load the first two columns 
+
+            if len(temp_curve_df.columns) < 2: 
+                continue 
+
+            # renames files properly 
+            temp_curve_df.columns = ['Time', 'Temperature']  # Ensure columns are named correctly           
+                         
             # checks wheter the respective file is valid 
-            if is_valid_tempcurve(temp_curve_df):  
+            if is_valid_tempcurve(temp_curve_df):                
                 
                 # generates a new instance of the tempcurve class with the respective rawdata and the patient_id and trace_id
                 tempcurve = class_tempcurve(temp_curve_df, patient_id, patient_vein_count)

@@ -28,7 +28,7 @@ class class_patient_list:
             
             num_patients +=1
                 
-            print(num_patients, "of", len(uploaded_files), "have been extracted")
+            print(patient_id, "exported, ", num_patients, "of", len(uploaded_files), "have been extracted")
             
             self.patient_list.append(patient)
             
@@ -95,7 +95,7 @@ class class_patient_list:
                     "vein_count'": patient.vein_count                    
                     }
                 
-                ## adds the clinical data, if no clinical data is available, 
+                ## adds the clinical data
                 clinical_data_dict = patient.clinical_data.to_dict('records')[0]
                 data_dict.update(clinical_data_dict)
                 

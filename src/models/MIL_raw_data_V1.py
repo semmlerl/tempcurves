@@ -29,7 +29,7 @@ def format_raw_data_(path):
     data = data[data["vein_count'"]> 3]    
     
     ## formatting raw data into 3d array per patient 
-    raw_data = data.iloc[:,13 :441].join(data['ID'])
+    raw_data = data.iloc[:,4 :664].join(data['ID'])
     raw_data.fillna(40, inplace = True)
     
     unique_ids = raw_data['ID'].unique()
@@ -189,8 +189,8 @@ def train(train_data, train_labels, val_data, val_labels, model):
         train_data,
         train_labels,
         validation_data=(val_data, val_labels),
-        epochs=20,   
-        batch_size=1,
+        epochs=10,   
+        batch_size=12,
         callbacks=[early_stopping, model_checkpoint],
         verbose=1,
     )
@@ -234,12 +234,12 @@ def predict(data, labels, trained_model):
         np.sum(models_attention_weights, axis=0),
     )
 
-def main():     
-
+# %%
+ 
     BAG_SIZE = 12    
     
     ## loading the raw data     
-    x_train, x_val, y_train, y_val = format_raw_data_("../../../local_env/data/extracted/extracted_raw_data_df.p")        
+    x_train, x_val, y_train, y_val = format_raw_data_("../../../data/extracted/extracted_raw_data_df.p")        
       
     # Building model(s).
     instance_shape = x_train[0][0].shape
@@ -253,7 +253,8 @@ def main():
         
     # Evaluate and predict classes and attention scores on validation data.
     class_predictions, attention_params = predict(x_val, y_val, trained_model)
-    
+
+# %%
     # calculating roc 
     calc_plot_roc(y_val, class_predictions)
     
@@ -261,7 +262,9 @@ def main():
     plot_predict(y_val, class_predictions)
     
     # plotting confusion matrix
-    plot_confusion_matrix(y_val, class_predictions, cutoff = 0.23)
+    plot_confusion_matrix(y_val, class_predictions, cutoff = 0.47)
 
+#%%
 if __name__ == "__main__": 
     main()
+# %%
