@@ -1,16 +1,39 @@
+# %%
 import numpy as np
 import keras
 import pickle
 from sklearn.model_selection import train_test_split
 from keras import layers
 from keras.layers import Conv1D, MaxPooling1D
+import random 
 from matplotlib import pyplot as plt
 from MILAttentionLayer import MILAttentionLayer
 from metrics import calc_plot_roc, plot_predict, plot_confusion_matrix
+import pandas as pd 
 
 plt.style.use("ggplot")
 
-def format_raw_data_(path): 
+def balance_data(data): 
+    # given a dataframe of timeseries with a ID and a Recurrence coloumn, 
+    # this function returns a dataframe in which there will be equally many 
+    # IDs with and without recurrence 
+
+    # seperating data into recurrence and no recurrence
+    nr = data[data["Recurrence"] == 0].reset_index()
+    yr = data[data["Recurrence"] == 1].reset_index()
+
+    # choosing as many IDs from the nr group, as there are unique IDs in the recurrence group
+    random_ids = random.sample(nr.ID.unique().tolist(), len(yr.ID.unique()))
+    
+    # choosing those IDs from the no recurrence group 
+    nr = nr[nr.ID.isin(random_ids)].reset_index()
+
+    # shortening the data to only include these two 
+    data = pd.concat([yr, nr], ignore_index=True)
+
+    return(data)
+
+def format_raw_data_(path, balance = False): 
     """
     Takes the input dataframe with a line per tempcurve, outputs a numpy 3d array: 
         - dimensions: number_of_patients, maximum number of tempcurves per patient, maximum length of tempcurve in seconds, channel (tensorflow cnn need a 3 channel)
@@ -21,13 +44,16 @@ def format_raw_data_(path):
     """
       
     ## loading the raw data 
-    with open(path, 'rb') as f: data = pickle.load(f)  
-    
+    with open(path, 'rb') as f: data = pickle.load(f)      
     
     # filter curves with more than 13 or less than 4 temperature curves
     data = data[data["vein_count'"]< 13]
     data = data[data["vein_count'"]> 3]    
-    
+
+    # balancing data 
+    if balance: 
+        data = balance_data(data)
+
     ## formatting raw data into 3d array per patient 
     raw_data = data.iloc[:,4 :664].join(data['ID'])
     raw_data.fillna(40, inplace = True)
@@ -234,37 +260,36 @@ def predict(data, labels, trained_model):
         np.sum(models_attention_weights, axis=0),
     )
 
-# %%
- 
-    BAG_SIZE = 12    
-    
-    ## loading the raw data     
-    x_train, x_val, y_train, y_val = format_raw_data_("../../../data/extracted/extracted_raw_data_df.p")        
+# %% 
+BAG_SIZE = 12   
+
+## loading the raw data     
+x_train, x_val, y_train, y_val = format_raw_data_("../../../data/extracted/extracted_raw_data_df.p")        
       
-    # Building model(s).
-    instance_shape = x_train[0][0].shape
-    model = create_model_CNN(instance_shape, BAG_SIZE)
+# Building model(s).
+instance_shape = x_train[0][0].shape
+model = create_model_CNN(instance_shape, BAG_SIZE)
     
-    # Show single model architecture.
-    print(model.summary())
+# Show single model architecture.
+print(model.summary())
     
-    # Training model(s).
-    trained_model = train(x_train, y_train, x_val, y_val, model)
+# Training model(s).
+trained_model = train(x_train, y_train, x_val, y_val, model)
         
-    # Evaluate and predict classes and attention scores on validation data.
-    class_predictions, attention_params = predict(x_val, y_val, trained_model)
+# Evaluate and predict classes and attention scores on validation data.
+class_predictions, attention_params = predict(x_val, y_val, trained_model)
 
 # %%
-    # calculating roc 
-    calc_plot_roc(y_val, class_predictions)
+# calculating roc 
+calc_plot_roc(y_val, class_predictions)
     
-    # plotting prediction table
-    plot_predict(y_val, class_predictions)
+# plotting prediction table
+plot_predict(y_val, class_predictions)
     
-    # plotting confusion matrix
-    plot_confusion_matrix(y_val, class_predictions, cutoff = 0.47)
+# plotting confusion matrix
+plot_confusion_matrix(y_val, class_predictions, cutoff = 0.47)
 
 #%%
-if __name__ == "__main__": 
-    main()
+#if __name__ == "__main__": 
+#    main()
 # %%
